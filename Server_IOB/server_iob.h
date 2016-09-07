@@ -14,6 +14,7 @@ public:
 
 private:
 	Ui::Server_IOBClass ui;
+	QDomDocument loadXMLDocument(QString);
 };
 
 #endif // SERVER_IOB_H
