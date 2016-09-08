@@ -1,22 +1,15 @@
 #include "server_iob.h"
-// library for processing xml documents
-#include <QtXml>
-// librar for processing files
-#include <QFile>
-#include <QFileInfo>
-// library for QDialog
-#include <QMessageBox>
+
 
 /********************/
 //   Server class   //
 /********************/
-// Member variables
-QString mFileName = "clientList.xml"; // client list
-QDomDocument mClientList;
 
 
 // Constructor
-Server_IOB::Server_IOB(QWidget *parent)	: QMainWindow(parent)
+Server_IOB::Server_IOB(QWidget *parent)	: QMainWindow(parent),
+mTCPServer(Q_NULLPTR),
+mNetworkSession(0)
 {
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
