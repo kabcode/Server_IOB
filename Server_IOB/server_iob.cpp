@@ -35,10 +35,12 @@ Server_IOB::~Server_IOB()
 
 
 // load the XML document
-QDomDocument Server_IOB::loadXMLDocument(QString file)
+QDomDocument Server_IOB::loadXMLDocument(QString fileName)
 {
+	QDomDocument clientList(fileName);
+
 	// check if client list exist
-	QFileInfo checkFile(file);
+	QFileInfo checkFile(fileName);
 	if (!checkFile.exists() && !checkFile.isFile())
 	{
 		// create a new xml document
@@ -54,15 +56,35 @@ QDomDocument Server_IOB::loadXMLDocument(QString file)
 			xmlWriter.writeEndDocument();
 			file.close();
 		}
+		// show error message box and exit the app
 		else
 		{
-			// show error message box and exit the app
 			QMessageBox messageBox;
 			messageBox.critical(0, "Error", "Not allowed to create file!");
 			messageBox.setFixedSize(500, 200);
 			QApplication::exit(EXIT_FAILURE);
 		}
 	}
-	
 
+	// load the xml file as QDomDocument
+	QFile xmlFile(fileName);
+	if (!xmlFile.open(QIODevice::ReadOnly))
+	{
+		xmlFile.close();
+		QMessageBox messageBox;
+		messageBox.critical(0, "Error", "Unable to read XML file!!");
+		messageBox.setFixedSize(500, 200);
+		QApplication::exit(EXIT_FAILURE);
+	}
+	if (!clientList.setContent(&xmlFile))
+	{
+		xmlFile.close();
+		QMessageBox messageBox;
+		messageBox.critical(0, "Error", "File contains wrong contaent!");
+		messageBox.setFixedSize(500, 200);
+		QApplication::exit(EXIT_FAILURE);
+	}
+
+	// return QDomDocument
+	return clientList;
 } // END loadXMLDocument
