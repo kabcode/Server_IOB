@@ -14,8 +14,7 @@ mNetworkSession(0)
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
 
-
-	
+		
 	// create UI
 	ui.setupUi(this);
 } // END constructor

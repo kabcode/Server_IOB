@@ -12,8 +12,10 @@
 #include <QFileInfo>
 // library for QDialog
 #include <QMessageBox>
-// library for network operations
-#include <QtNetwork>
+
+// 
+#include <QTcpServer>;
+class QNetworkSession;
 
 class Server_IOB : public QMainWindow
 {
@@ -29,8 +31,8 @@ private:
 	// member variables
 	QString mFileName = "clientList.xml"; // client list name
 	QDomDocument mClientList; // xml client document
-	QTcpServer mTCPServer; // server
-	QNetworkSession mNetworkSession;
+	QTcpServer *mTCPServer; // server
+	QNetworkSession *mNetworkSession;
 
 private:
 	// functions
