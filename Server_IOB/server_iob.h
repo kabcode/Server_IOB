@@ -13,30 +13,34 @@
 // library for QDialog
 #include <QMessageBox>
 
-// 
-#include <QTcpServer>;
-class QNetworkSession;
+// library for networking
+#include <QtNetwork>;
 
 class Server_IOB : public QMainWindow
 {
 	Q_OBJECT
 
 public:
-	Server_IOB(QWidget *parent = 0);
+	explicit Server_IOB(QWidget *parent = 0);
 	~Server_IOB();
+
+public slots:
+	void newConnection();
 
 private:
 	Ui::Server_IOBClass ui;
 
 	// member variables
-	QString mFileName = "clientList.xml"; // client list name
-	QDomDocument mClientList; // xml client document
-	QTcpServer *mTCPServer; // server
-	QNetworkSession *mNetworkSession;
+	QString              mFileName = "knownClientList.xml"; // client list name
+	QDomDocument         mClientList; // xml client document
+	QHash<int, QString>  mClientHash;
+	QTcpServer          *mTCPServer; // server
+	QNetworkSession     *mNetworkSession;
 
 private:
 	// functions
 	QDomDocument loadXMLDocument(QString);
+	void         setClientList(QDomDocument);
 };
 
 #endif // SERVER_IOB_H

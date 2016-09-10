@@ -14,6 +14,11 @@ mNetworkSession(0)
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
 
+	// parse the client list
+	setClientList(mClientList);
+
+	// start network service and listening
+
 		
 	// create UI
 	ui.setupUi(this);
@@ -24,7 +29,6 @@ Server_IOB::~Server_IOB()
 {
 
 } // END destructor
-
 
 // load the XML document
 QDomDocument Server_IOB::loadXMLDocument(QString fileName)
@@ -72,7 +76,7 @@ QDomDocument Server_IOB::loadXMLDocument(QString fileName)
 	{
 		xmlFile.close();
 		QMessageBox messageBox;
-		messageBox.critical(0, "Error", "File contains wrong contaent!");
+		messageBox.critical(0, "Error", "File contains wrong content!");
 		messageBox.setFixedSize(500, 200);
 		QApplication::exit(EXIT_FAILURE);
 	}
@@ -80,3 +84,28 @@ QDomDocument Server_IOB::loadXMLDocument(QString fileName)
 	// return QDomDocument
 	return clientList;
 } // END loadXMLDocument
+
+// create a hash map from xml document
+void Server_IOB::setClientList(QDomDocument mClientList)
+{
+	QDomElement root = mClientList.firstChildElement("clientList");
+	// if there are no clients in the list return
+	if (!root.hasChildNodes())
+	{
+		return;
+	}
+	// traverse the sibling nodes to get the clients
+	QDomNode child =  mClientList.firstChild();
+	while (!child.isNull())
+	{
+		QDomElement item = child.firstChildElement("id");
+		int clientId = item.text().toInt();
+		item = item.nextSiblingElement();
+		QString clientName = item.text();
+		qDebug << "Client ID: " << clientId;
+		qDebug << "Client name: " << clientName;
+		child = child.nextSibling();
+		mClientHash.insert(clientId,clientName);
+	}
+
+}// END setClientList
