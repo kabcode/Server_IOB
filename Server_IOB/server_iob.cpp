@@ -7,9 +7,7 @@
 
 
 // Constructor
-Server_IOB::Server_IOB(QWidget *parent)	: QMainWindow(parent),
-mTCPServer(Q_NULLPTR),
-mNetworkSession(0)
+Server_IOB::Server_IOB(QWidget *parent)	: QMainWindow(parent)
 {
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
@@ -18,7 +16,16 @@ mNetworkSession(0)
 	setClientList(mClientList);
 
 	// start network service and listening
-
+	mTCPServer = new QTcpServer(this);
+	connect(mTCPServer, SIGNAL(&QTcpServer::newConnection()), this, SLOT(newConnection()));
+	if (!mTCPServer->listen(QHostAddress::Any, 9000))
+	{
+		qDebug() << "Server could not start!";
+	}
+	else
+	{
+		qDebug() << "Server started!";
+	}
 		
 	// create UI
 	ui.setupUi(this);
@@ -102,10 +109,24 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 		int clientId = item.text().toInt();
 		item = item.nextSiblingElement();
 		QString clientName = item.text();
-		qDebug << "Client ID: " << clientId;
-		qDebug << "Client name: " << clientName;
+		qDebug() << "Client ID: " << clientId;
+		qDebug() << "Client name: " << clientName;
 		child = child.nextSibling();
 		mClientHash.insert(clientId,clientName);
 	}
 
 }// END setClientList
+
+// what to do with an incomming connection
+void Server_IOB::newConnection()
+{
+	QTcpSocket *socket = mTCPServer->nextPendingConnection();
+
+	socket->write("Hello client\r\n");
+	socket->flush();
+
+	socket->waitForBytesWritten(3000);
+
+	socket->close();
+
+}// END newConnection

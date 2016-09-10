@@ -14,7 +14,7 @@
 #include <QMessageBox>
 
 // library for networking
-#include <QtNetwork>;
+#include <QtNetwork>
 
 class Server_IOB : public QMainWindow
 {
