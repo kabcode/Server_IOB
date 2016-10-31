@@ -1,10 +1,10 @@
 #ifndef SERVER_IOB_H
 #define SERVER_IOB_H
+
 // standard includes
 #include <QtWidgets/QMainWindow>
 #include "ui_server_iob.h"
 #include <QString>
-
 // library for processing xml documents
 #include <QtXml>
 // librar for processing files
@@ -12,9 +12,12 @@
 #include <QFileInfo>
 // library for QDialog
 #include <QMessageBox>
-
 // library for networking
 #include <QtNetwork>
+
+//******************//
+//   Server class   //
+//******************//
 
 class Server_IOB : public QMainWindow
 {
@@ -25,22 +28,24 @@ public:
 	~Server_IOB();
 
 public slots:
-	void newConnection();
+	void sendGreetings();
 
 private:
-	Ui::Server_IOBClass ui;
-
 	// member variables
 	QString              mFileName = "knownClientList.xml"; // client list name
 	QDomDocument         mClientList; // xml client document
 	QHash<int, QString>  mClientHash;
-	QTcpServer          *mTCPServer; // server
+	
+	// network variables
+	QTcpServer          *mTcpServer; // server
 	QNetworkSession     *mNetworkSession;
 
-private:
-	// functions
+	// private functions
 	QDomDocument loadXMLDocument(QString);
 	void         setClientList(QDomDocument);
+
+	// UI variables
+	Ui::Server_IOBClass ui;
 };
 
 #endif // SERVER_IOB_H

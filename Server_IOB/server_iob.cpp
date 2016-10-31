@@ -1,13 +1,14 @@
 #include "server_iob.h"
 
-
-/********************/
+//******************//
 //   Server class   //
-/********************/
+//******************//
 
-
-// Constructor
-Server_IOB::Server_IOB(QWidget *parent)	: QMainWindow(parent)
+// constructor
+Server_IOB::Server_IOB(QWidget *parent)
+	: QMainWindow(parent),
+	mTcpServer(new QTcpServer(this)),
+	mNetworkSession(Q_NULLPTR)
 {
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
@@ -16,8 +17,8 @@ Server_IOB::Server_IOB(QWidget *parent)	: QMainWindow(parent)
 	setClientList(mClientList);
 
 	// start network service and listening
-	mTCPServer = new QTcpServer(this);
-	connect(mTCPServer, SIGNAL(&QTcpServer::newConnection()), this, SLOT(newConnection()));
+	connect(mTCPServer, &QTcpServer::newConnection, this, &Server_IOB::sendGreetings);
+
 	if (!mTCPServer->listen(QHostAddress::Any, 9000))
 	{
 		qDebug() << "Server could not start!";
@@ -31,7 +32,7 @@ Server_IOB::Server_IOB(QWidget *parent)	: QMainWindow(parent)
 	ui.setupUi(this);
 } // END constructor
 
-// Destructor
+// destructor
 Server_IOB::~Server_IOB()
 {
 
@@ -75,7 +76,7 @@ QDomDocument Server_IOB::loadXMLDocument(QString fileName)
 	{
 		xmlFile.close();
 		QMessageBox messageBox;
-		messageBox.critical(0, "Error", "Unable to read XML file!!");
+		messageBox.critical(0, "Error", "Unable to read XML file!");
 		messageBox.setFixedSize(500, 200);
 		QApplication::exit(EXIT_FAILURE);
 	}
@@ -114,19 +115,25 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 		child = child.nextSibling();
 		mClientHash.insert(clientId,clientName);
 	}
-
 }// END setClientList
 
 // what to do with an incomming connection
-void Server_IOB::newConnection()
+void Server_IOB::sendGreetings()
 {
-	QTcpSocket *socket = mTCPServer->nextPendingConnection();
+	qDebug() << "recieved new connection";
+	QTcpSocket *clientConnection = mTCPServer->nextPendingConnection();
+	connect(clientConnection, &QAbstractSocket::disconnected, clientConnection, &QAbstractSocket::deleteLater);
 
-	socket->write("Hello client\r\n");
-	socket->flush();
+	QByteArray block;
+	QDataStream out(&block, QIODevice::WriteOnly);
 
-	socket->waitForBytesWritten(3000);
+	out.setVersion(QDataStream::Qt_5_7);
 
-	socket->close();
+	out << "Hello Client";
 
-}// END newConnection
+	
+
+	clientConnection->write(block);
+	clientConnection->disconnectFromHost();
+
+}// END sendGreetings
