@@ -27,7 +27,8 @@ public:
 	explicit Server_IOB(QWidget *parent = 0);
 	~Server_IOB();
 
-public slots:
+private slots:
+	void sessionOpened();
 	void sendGreetings();
 
 private:
@@ -39,6 +40,8 @@ private:
 	// network variables
 	QTcpServer          *mTcpServer; // server
 	QNetworkSession     *mNetworkSession;
+
+	// network functions
 
 	// private functions
 	QDomDocument loadXMLDocument(QString);

@@ -17,17 +17,16 @@ Server_IOB::Server_IOB(QWidget *parent)
 	setClientList(mClientList);
 
 	// start network service and listening
-	connect(mTCPServer, &QTcpServer::newConnection, this, &Server_IOB::sendGreetings);
+	QNetworkConfigurationManager manager;
+	QNetworkConfiguration config = manager.defaultConfiguration();
+	mNetworkSession = new QNetworkSession(config, this);
+	connect(mNetworkSession, &QNetworkSession::opened, this, &Server_IOB::sessionOpened);
+	mNetworkSession->open();
+	//sessionOpened();
 
-	if (!mTCPServer->listen(QHostAddress::Any, 9000))
-	{
-		qDebug() << "Server could not start!";
-	}
-	else
-	{
-		qDebug() << "Server started!";
-	}
-		
+	// the way incomming connections will be handled
+	connect(mTcpServer, &QTcpServer::newConnection, this, &Server_IOB::sendGreetings);
+			
 	// create UI
 	ui.setupUi(this);
 } // END constructor
@@ -35,7 +34,6 @@ Server_IOB::Server_IOB(QWidget *parent)
 // destructor
 Server_IOB::~Server_IOB()
 {
-
 } // END destructor
 
 // load the XML document
@@ -121,19 +119,36 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 void Server_IOB::sendGreetings()
 {
 	qDebug() << "recieved new connection";
-	QTcpSocket *clientConnection = mTCPServer->nextPendingConnection();
-	connect(clientConnection, &QAbstractSocket::disconnected, clientConnection, &QAbstractSocket::deleteLater);
-
+	
 	QByteArray block;
 	QDataStream out(&block, QIODevice::WriteOnly);
 
 	out.setVersion(QDataStream::Qt_5_7);
+	QString response("Hello Client!");
+	out << response;	
 
-	out << "Hello Client";
-
-	
-
+	QTcpSocket *clientConnection = mTcpServer->nextPendingConnection();
+	connect(clientConnection, &QAbstractSocket::disconnected, clientConnection, &QAbstractSocket::deleteLater);
 	clientConnection->write(block);
+	clientConnection->flush();
+	qDebug() << "Wrote message";
 	clientConnection->disconnectFromHost();
 
 }// END sendGreetings
+
+// opening a server client session
+void Server_IOB::sessionOpened()
+{
+	mTcpServer = new QTcpServer(this);
+	if (!mTcpServer->listen(QHostAddress::LocalHost, 9000)) {
+		QMessageBox::critical(this, tr("IOB Server"),
+			tr("Unable to start the server: %1.")
+			.arg(mTcpServer->errorString()));
+		close();
+		return;
+	}
+	QString ipAddress;
+	ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
+	qDebug() << "The server is running on\nIP: " << ipAddress << "\nPort: " << mTcpServer->serverPort();
+
+}// END sessionOpened
