@@ -27,21 +27,28 @@ public:
 	explicit Server_IOB(QWidget *parent = 0);
 	~Server_IOB();
 
+signals:
+	
 private slots:
-	void sessionOpened();
-	void sendGreetings();
+	void newConnection();
+	void connected();
+	void disconnected();
+	void bytesWritten(qint64 bytes);
+	void readyRead();
 
 private:
 	// member variables
-	QString              mFileName = "knownClientList.xml"; // client list name
-	QDomDocument         mClientList; // xml client document
+	QString				 mFileName = "knownClientList.xml"; // client list name
+	QDomDocument		 mClientList; // xml client document
 	QHash<int, QString>  mClientHash;
 	
 	// network variables
 	QTcpServer          *mTcpServer; // server
-	QNetworkSession     *mNetworkSession;
+	QTcpSocket			*mTcpSocket = 0;
+	QDataStream			 in;
 
 	// network functions
+	void startServer();
 
 	// private functions
 	QDomDocument loadXMLDocument(QString);
