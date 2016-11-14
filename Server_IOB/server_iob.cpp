@@ -7,6 +7,9 @@
 // constructor
 Server_IOB::Server_IOB(QWidget *parent)
 	: QMainWindow(parent),
+	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Echo Server"),
+		QWebSocketServer::NonSecureMode, this)),
+	m_clients(),
 	mTcpServer(new QTcpServer(this))
 {
 	// load the XML document with the known clients
@@ -16,7 +19,13 @@ Server_IOB::Server_IOB(QWidget *parent)
 	setClientList(mClientList);
 
 	// the way incomming connections will be handled
-	this->startServer();
+	QHostAddress addr = QHostAddress::LocalHost;
+	qint16 port = 9000;
+	m_pWebSocketServer->listen(addr, port);
+	qDebug() << "Echoserver listening on port" << port;
+	connect(m_pWebSocketServer, &QWebSocketServer::newConnection,this, &Server_IOB::onNewConnection);
+		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &Server_IOB::closed);
+	//this->startServer();
 			
 	// create UI
 	ui.setupUi(this);
@@ -25,6 +34,8 @@ Server_IOB::Server_IOB(QWidget *parent)
 // destructor
 Server_IOB::~Server_IOB()
 {
+	m_pWebSocketServer->close();
+	qDeleteAll(m_clients.begin(), m_clients.end());
 } // END destructor
 
 // load the XML document
@@ -107,6 +118,7 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 }// END setClientList
 
 // start th server and get it listening
+/*
 void Server_IOB::startServer()
 {
 	// server listens at 'localhost', port 9000
@@ -121,8 +133,6 @@ void Server_IOB::startServer()
 	{
 		qDebug() << "Server is running at: " << addr << ", Port: " << port;
 		connect(mTcpServer, &QTcpServer::newConnection, this, &Server_IOB::newConnection);
-
-
 	}
 }
 
@@ -170,6 +180,44 @@ void Server_IOB::readyRead()
 	mTcpSocket->write(block);
 	mTcpSocket->flush();
 	qDebug() << "Message sent";
+}
+*/
 
-	
+void Server_IOB::onNewConnection()
+{
+	QWebSocket *pSocket = m_pWebSocketServer->nextPendingConnection();
+
+	connect(pSocket, &QWebSocket::textMessageReceived, this, &Server_IOB::processTextMessage);
+	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &Server_IOB::processBinaryMessage);
+	connect(pSocket, &QWebSocket::disconnected, this, &Server_IOB::socketDisconnected);
+
+	m_clients << pSocket;
+}
+
+void Server_IOB::processTextMessage(QString message)
+{
+	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
+	qDebug() << "Message received:" << message;
+	if (pClient) {
+		pClient->sendTextMessage(message);
+	}
+}
+
+void Server_IOB::processBinaryMessage(QByteArray message)
+{
+	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
+	qDebug() << "Binary Message received:" << message;
+	if (pClient) {
+		pClient->sendBinaryMessage(message);
+	}
+}
+
+void Server_IOB::socketDisconnected()
+{
+	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
+	qDebug() << "socketDisconnected:" << pClient;
+	if (pClient) {
+		m_clients.removeAll(pClient);
+		pClient->deleteLater();
+	}
 }

@@ -14,6 +14,7 @@
 #include <QMessageBox>
 // library for networking
 #include <QtNetwork>
+#include <QtWebSockets>
 
 //******************//
 //   Server class   //
@@ -28,14 +29,20 @@ public:
 	~Server_IOB();
 
 signals:
+	void closed();
 	
 private slots:
+	/*
 	void newConnection();
 	void connected();
 	void disconnected();
 	void bytesWritten(qint64 bytes);
 	void readyRead();
-
+	*/
+	void onNewConnection();
+	void processTextMessage(QString message);
+	void processBinaryMessage(QByteArray message);
+	void socketDisconnected();
 private:
 	// member variables
 	QString				 mFileName = "knownClientList.xml"; // client list name
@@ -43,6 +50,8 @@ private:
 	QHash<int, QString>  mClientHash;
 	
 	// network variables
+	QWebSocketServer *m_pWebSocketServer;
+	QList<QWebSocket *> m_clients;
 	QTcpServer          *mTcpServer; // server
 	QTcpSocket			*mTcpSocket = 0;
 	QDataStream			 in;
