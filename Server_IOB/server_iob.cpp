@@ -7,8 +7,8 @@
 // constructor
 Server_IOB::Server_IOB(QWidget *parent)
 	: QMainWindow(parent),
-	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("Echo Server"), QWebSocketServer::SecureMode, this)),
-	m_clients()
+	mWebSocketServer(new QWebSocketServer(QStringLiteral("InOutBoard"), QWebSocketServer::NonSecureMode, this)),
+	mClients()
 {
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
@@ -16,14 +16,9 @@ Server_IOB::Server_IOB(QWidget *parent)
 	// parse the client list
 	setClientList(mClientList);
 
-	// the way incomming connections will be handled
-	QHostAddress addr = QHostAddress::LocalHost;
-	qint16 port = 9000;
-	m_pWebSocketServer->listen(addr, port);
-	qDebug() << "Echoserver listening on port" << port;
-	connect(m_pWebSocketServer, &QWebSocketServer::newConnection,this, &Server_IOB::onNewConnection);
-	connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &Server_IOB::closed);
-	
+	// start server
+	this->startServer();
+		
 	// create UI
 	ui.setupUi(this);
 } // END constructor
@@ -31,8 +26,8 @@ Server_IOB::Server_IOB(QWidget *parent)
 // destructor
 Server_IOB::~Server_IOB()
 {
-	m_pWebSocketServer->close();
-	qDeleteAll(m_clients.begin(), m_clients.end());
+	mWebSocketServer->close();
+	qDeleteAll(mClients.begin(), mClients.end());
 } // END destructor
 
 // load the XML document
@@ -110,28 +105,62 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 		qDebug() << "Client ID: " << clientId;
 		qDebug() << "Client name: " << clientName;
 		child = child.nextSibling();
-		mClientHash.insert(clientId,clientName);
 	}
 }// END setClientList
 
+void Server_IOB::startServer()
+{
+	QHostAddress addr = QHostAddress::LocalHost;
+	qint16 port = 9000;
+	mWebSocketServer->listen(addr, port);
+	qDebug() << "InOutBoard Server listening on port" << port;
+	connect(mWebSocketServer, &QWebSocketServer::newConnection, this, &Server_IOB::onNewConnection);
+	connect(mWebSocketServer, &QWebSocketServer::closed, this, &Server_IOB::closed);
+}
+
 void Server_IOB::onNewConnection()
 {
-	QWebSocket *pSocket = m_pWebSocketServer->nextPendingConnection();
+	QWebSocket *pSocket = mWebSocketServer->nextPendingConnection();
 
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &Server_IOB::processTextMessage);
 	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &Server_IOB::processBinaryMessage);
 	connect(pSocket, &QWebSocket::disconnected, this, &Server_IOB::socketDisconnected);
 
-	m_clients << pSocket;
+	mClients << pSocket;
 }
 
-void Server_IOB::processTextMessage(QString message)
+void Server_IOB::processTextMessage(QString telegram)
 {
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
-	qDebug() << "Message received:" << message;
-	if (pClient) {
-		pClient->sendTextMessage(message);
+	QStringList controls = telegram.split("#");
+	QStringList::Iterator iter = controls.begin();
+	for (iter; iter != controls.end(); ++iter)
+	{
+		qDebug() << *iter;
 	}
+	int control = controls.at(0).toInt();
+	
+	if (control == MESSAGEID::REGISTRATION)
+	{
+		qDebug() << "Registration requested!";
+		if (controls.at(1).toInt() == 0)
+		{
+			qDebug() << "No ID!";
+			// create new id and send back
+			QUuid quuid = QUuid::createUuid();
+			QString uuid = quuid.toString();
+			if (pClient) {
+				pClient->sendTextMessage(uuid);
+			}
+		}
+		else
+		{
+			qDebug() << "ID is ok!";
+			// give a answer that the registration succeded
+		}
+	}
+
+	
 }
 
 void Server_IOB::processBinaryMessage(QByteArray message)
@@ -148,7 +177,7 @@ void Server_IOB::socketDisconnected()
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
 	qDebug() << "socketDisconnected:" << pClient;
 	if (pClient) {
-		m_clients.removeAll(pClient);
+		mClients.removeAll(pClient);
 		pClient->deleteLater();
 	}
 }

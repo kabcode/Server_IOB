@@ -28,28 +28,37 @@ public:
 	explicit Server_IOB(QWidget *parent = 0);
 	~Server_IOB();
 
+	// message control
+	enum MESSAGEID
+	{
+		REQUEST,
+		REGISTRATION,
+		UPDATE,
+		TEST
+	};
+
 signals:
 	void closed();
 	
 private slots:
-
 	void onNewConnection();
 	void processTextMessage(QString message);
 	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
+
 private:
 	// member variables
 	QString				 mFileName = "knownClientList.xml"; // client list name
 	QDomDocument		 mClientList; // xml client document
 	
 	// network variables
-	QWebSocketServer *m_pWebSocketServer;
-	QList<QWebSocket *> m_clients;
-	QDataStream			 in;
+	QWebSocketServer    *mWebSocketServer;
+	QList<QWebSocket *>  mClients;
 
 	// private functions
 	QDomDocument loadXMLDocument(QString);
 	void         setClientList(QDomDocument);
+	void		 startServer();
 
 	// UI variables
 	Ui::Server_IOBClass ui;
