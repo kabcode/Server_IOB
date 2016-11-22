@@ -126,7 +126,7 @@ void Server_IOB::onNewConnection()
 	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &Server_IOB::processBinaryMessage);
 	connect(pSocket, &QWebSocket::disconnected, this, &Server_IOB::socketDisconnected);
 
-	mClients << pSocket;
+	mPendingSockets << pSocket;
 }
 
 void Server_IOB::processTextMessage(QString telegram)
@@ -143,10 +143,10 @@ void Server_IOB::processTextMessage(QString telegram)
 	if (control == MESSAGEID::REGISTRATION)
 	{
 		qDebug() << "Registration requested!";
-		if (controls.at(1).toInt() == 0)
+		if (controls.at(1) == QUuid::QUuid().toString())
 		{
 			qDebug() << "No ID!";
-			// create new id and send back
+			// create new ID and send it to client
 			QUuid quuid = QUuid::createUuid();
 			QString uuid = quuid.toString();
 			if (pClient) {
@@ -177,7 +177,7 @@ void Server_IOB::socketDisconnected()
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
 	qDebug() << "socketDisconnected:" << pClient;
 	if (pClient) {
-		mClients.removeAll(pClient);
+		mPendingSockets.removeAll(pClient);
 		pClient->deleteLater();
 	}
 }

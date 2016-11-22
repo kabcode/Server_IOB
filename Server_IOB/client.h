@@ -29,7 +29,7 @@ private:
 	QString phone;
 	QString notes;
 
-	QWebSocket websocket;
+	QWebSocket* websocket;
 	QDateTime lastUpdateDateTime;
 
 	// getter and setter functions

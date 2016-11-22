@@ -15,6 +15,8 @@
 // library for networking
 #include <QtNetwork>
 #include <QtWebSockets>
+// include custom classes
+#include "client.h"
 
 //******************//
 //   Server class   //
@@ -53,7 +55,8 @@ private:
 	
 	// network variables
 	QWebSocketServer    *mWebSocketServer;
-	QList<QWebSocket *>  mClients;
+	QList<Client* >		 mClients;
+	QList<QWebSocket *>  mPendingSockets;
 
 	// private functions
 	QDomDocument loadXMLDocument(QString);
