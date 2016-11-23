@@ -97,16 +97,26 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 		return;
 	}
 	// traverse the sibling nodes to get the clients
-	QDomNode child =  mClientList.firstChild();
-	while (!child.isNull())
+	QDomNode client =  root.firstChildElement("client");
+	while (!client.isNull())
 	{
-		QDomElement item = child.firstChildElement("id");
-		QString clientId = item.text().toInt();
-		item = item.nextSiblingElement();
-		QString clientName = item.text();
-		qDebug() << "Client ID: " << clientId;
-		qDebug() << "Client name: " << clientName;
-		child = child.nextSibling();
+		QString id = client.toElement().attribute("id");
+		if (isValidQUuid(id))
+		{
+			QString name     = client.firstChildElement("name").text();
+			QString status   = client.firstChildElement("status").text();
+			QString location = client.firstChildElement("location").text();
+			QString phone    = client.firstChildElement("phone").text();
+			QString notes    = client.firstChildElement("notes").text();
+			QDateTime lastUpdated = QDateTime::fromString(client.firstChildElement("updateTime").text(),"yyyy:MM:dd HH : mm:ss");
+			qDebug() << name;
+			qDebug() << status;
+			qDebug() << location;
+			qDebug() << phone;
+			qDebug() << notes;
+			qDebug() << lastUpdated.toString();
+		}
+		client = client.nextSibling();
 	}
 }// END setClientList
 
@@ -147,22 +157,11 @@ void Server_IOB::processTextMessage(QString telegram)
 	{
 		qDebug() << "Registration requested!";
 		// check id provided id is valid
-		QString uuidCheck = controls.at(1);
-		bool valid = true;
-		uuidCheck.replace(QRegularExpression("[{}]"), "");
-		QRegularExpression hexMatcher("^[0-9a-f\-]{36}$");
-		QRegularExpressionMatch match = hexMatcher.match(uuidCheck);
-		if (!match.hasMatch()) { valid = false; }
-		QStringList t = uuidCheck.split("-");
-		if (t.at(0).length() != 8) { valid = false; }
-		if (t.at(1).length() != 4) { valid = false; }
-		if (t.at(2).length() != 4) { valid = false; }
-		if (t.at(3).length() != 4) { valid = false; }
-		if (t.at(4).length() != 12) { valid = false; }
-		if (uuidCheck != QUuid::QUuid().toString() && valid)
+		QString uuid = controls.at(1);
+		if (uuid != QUuid::QUuid().toString() && isValidQUuid(uuid))
 		{
 			qDebug() << "ID is valid!";
-			if (!this->isClient(uuidCheck))
+			if (!this->isClient(uuid))
 			{
 				// client is known
 			}
@@ -209,4 +208,22 @@ bool Server_IOB::isClient(QString uuid)
 		
 	}
 	return true;
+}
+
+// check a QUuid for validity (check length & symbols)
+bool Server_IOB::isValidQUuid(QString uuid)
+{
+	bool valid = true;
+	uuid.replace(QRegularExpression("[{}]"), "");
+	QRegularExpression hexMatcher("^[0-9a-f\-]{36}$");
+	QRegularExpressionMatch match = hexMatcher.match(uuid);
+	if (!match.hasMatch()) { valid = false; }
+	QStringList t = uuid.split("-");
+	if (t.at(0).length() != 8) { valid = false; }
+	if (t.at(1).length() != 4) { valid = false; }
+	if (t.at(2).length() != 4) { valid = false; }
+	if (t.at(3).length() != 4) { valid = false; }
+	if (t.at(4).length() != 12) { valid = false; }
+
+	return valid;
 }

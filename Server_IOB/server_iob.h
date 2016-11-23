@@ -5,6 +5,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_server_iob.h"
 #include <QString>
+#include <QDateTime>
 // library for processing xml documents
 #include <QtXml>
 // librar for processing files
@@ -64,6 +65,7 @@ private:
 	void         setClientList(QDomDocument);
 	void		 startServer();
 	bool		 isClient(QString);
+	bool		 isValidQUuid(QString);
 
 	// UI variables
 	Ui::Server_IOBClass ui;
