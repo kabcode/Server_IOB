@@ -36,6 +36,8 @@ public:
 		REQUEST,
 		REGISTRATION,
 		UPDATE,
+		MESSAGE,
+		REFUSAL,
 		TEST
 	};
 
@@ -45,7 +47,6 @@ signals:
 private slots:
 	void onNewConnection();
 	void processTextMessage(QString message);
-	void processBinaryMessage(QByteArray message);
 	void socketDisconnected();
 
 private:
@@ -62,6 +63,7 @@ private:
 	QDomDocument loadXMLDocument(QString);
 	void         setClientList(QDomDocument);
 	void		 startServer();
+	bool		 isClient(QString);
 
 	// UI variables
 	Ui::Server_IOBClass ui;

@@ -11,7 +11,7 @@ class Client : public QObject
 	Q_OBJECT
 
 public:
-	Client(QObject *parent);
+	Client(QUuid uuid, QObject *parent);
 	~Client();
 
 	enum STATUS

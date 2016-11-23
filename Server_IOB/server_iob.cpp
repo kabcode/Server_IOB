@@ -10,6 +10,8 @@ Server_IOB::Server_IOB(QWidget *parent)
 	mWebSocketServer(new QWebSocketServer(QStringLiteral("InOutBoard"), QWebSocketServer::NonSecureMode, this)),
 	mClients()
 {
+
+	
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
 
@@ -99,7 +101,7 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 	while (!child.isNull())
 	{
 		QDomElement item = child.firstChildElement("id");
-		int clientId = item.text().toInt();
+		QString clientId = item.text().toInt();
 		item = item.nextSiblingElement();
 		QString clientName = item.text();
 		qDebug() << "Client ID: " << clientId;
@@ -123,7 +125,6 @@ void Server_IOB::onNewConnection()
 	QWebSocket *pSocket = mWebSocketServer->nextPendingConnection();
 
 	connect(pSocket, &QWebSocket::textMessageReceived, this, &Server_IOB::processTextMessage);
-	connect(pSocket, &QWebSocket::binaryMessageReceived, this, &Server_IOB::processBinaryMessage);
 	connect(pSocket, &QWebSocket::disconnected, this, &Server_IOB::socketDisconnected);
 
 	mPendingSockets << pSocket;
@@ -139,37 +140,54 @@ void Server_IOB::processTextMessage(QString telegram)
 		qDebug() << *iter;
 	}
 	int control = controls.at(0).toInt();
-	
-	if (control == MESSAGEID::REGISTRATION)
+
+	switch (control)
+	{
+	case MESSAGEID::REGISTRATION:
 	{
 		qDebug() << "Registration requested!";
-		if (controls.at(1) == QUuid::QUuid().toString())
+		// check id provided id is valid
+		QString uuidCheck = controls.at(1);
+		bool valid = true;
+		uuidCheck.replace(QRegularExpression("[{}]"), "");
+		QRegularExpression hexMatcher("^[0-9a-f\-]{36}$");
+		QRegularExpressionMatch match = hexMatcher.match(uuidCheck);
+		if (!match.hasMatch()) { valid = false; }
+		QStringList t = uuidCheck.split("-");
+		if (t.at(0).length() != 8) { valid = false; }
+		if (t.at(1).length() != 4) { valid = false; }
+		if (t.at(2).length() != 4) { valid = false; }
+		if (t.at(3).length() != 4) { valid = false; }
+		if (t.at(4).length() != 12) { valid = false; }
+		if (uuidCheck != QUuid::QUuid().toString() && valid)
 		{
-			qDebug() << "No ID!";
-			// create new ID and send it to client
-			QUuid quuid = QUuid::createUuid();
-			QString uuid = quuid.toString();
+			qDebug() << "ID is valid!";
+			if (!this->isClient(uuidCheck))
+			{
+				// client is known
+			}
+			else
+			{
+				// unknown clients
+			}
+			QString ack("Registration is done.");
 			if (pClient) {
-				pClient->sendTextMessage(uuid);
+				pClient->sendTextMessage(ack);
 			}
 		}
 		else
 		{
-			qDebug() << "ID is ok!";
+			qDebug() << "ID is not valid!";
+			pClient->sendTextMessage(QString::number(MESSAGEID::REFUSAL).append("#ID is not correct."));
 			// give a answer that the registration succeded
 		}
 	}
-
-	
-}
-
-void Server_IOB::processBinaryMessage(QByteArray message)
-{
-	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
-	qDebug() << "Binary Message received:" << message;
-	if (pClient) {
-		pClient->sendBinaryMessage(message);
+		break;
+	default:
+		qDebug() << "Unknown request!";
 	}
+	
+	
 }
 
 void Server_IOB::socketDisconnected()
@@ -180,4 +198,15 @@ void Server_IOB::socketDisconnected()
 		mPendingSockets.removeAll(pClient);
 		pClient->deleteLater();
 	}
+}
+
+// check if new client is known
+bool Server_IOB::isClient(QString uuid)
+{
+	QList<Client*>::ConstIterator cIter = mClients.constBegin();
+	for (cIter; cIter != mClients.constEnd(); ++cIter)
+	{
+		
+	}
+	return true;
 }

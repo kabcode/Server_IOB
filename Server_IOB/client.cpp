@@ -1,14 +1,14 @@
 #include "client.h"
 
 
-Client::Client(QObject *parent)
+Client::Client(QUuid uuid, QObject *parent)
 	: QObject(parent),
 	name(""),
+	uuid(uuid),
 	location(""),
 	phone(""),
 	notes("")
 {
-	uuid = QUuid::createUuid();
 	status = STATUS::ABSENT;
 }
 
