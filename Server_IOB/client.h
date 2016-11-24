@@ -11,8 +11,11 @@ class Client : public QObject
 	Q_OBJECT
 
 public:
-	Client(QUuid uuid, QObject *parent);
+	Client(QUuid, QString);
 	~Client();
+
+	//Client(const Client&) = default;
+//	Client(Client&&) = default;
 
 	enum STATUS
 	{
@@ -20,6 +23,26 @@ public:
 		BUSY,
 		ABSENT
 	};
+
+	// getter and setter functions
+	void setName(QString);
+	void setStatus(int);
+	void setLocation(QString);
+	void setPhone(QString);
+	void setNotes(QString);
+	void setLastUpdateDateTime();
+	void setLastUpdateDateTime(QDateTime);
+	void setWebsocket(QWebSocket);
+
+	QUuid	Client::getUuid();
+	QString Client::getName();
+	int		Client::getStatus();
+	QString	Client::getLocation();
+	QString	Client::getPhone();
+	QString	Client::getNotes();
+	QDateTime Client::getLastUpdateDateTime();
+
+	void Client::print();
 
 private:
 	QUuid uuid;
@@ -31,23 +54,7 @@ private:
 
 	QWebSocket* websocket;
 	QDateTime lastUpdateDateTime;
-
-	// getter and setter functions
-	void Client::setName(QString);
-	void Client::setStatus(int);
-	void Client::setLocation(QString);
-	void Client::setPhone(QString);
-	void Client::setNotes(QString);
-	void Client::setLastUpdateDateTime();
-	void Client::setWebsocket(QWebSocket);
-
-	QUuid	Client::getUuid();
-	QString Client::getName();
-	int		Client::getStatus();
-	QString	Client::getLocation();
-	QString	Client::getPhone();
-	QString	Client::getNotes();
-	QDateTime Client::getLastUpdateDateTime();
+	
 };
 
 #endif // CLIENT_H

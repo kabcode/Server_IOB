@@ -7,17 +7,16 @@
 // constructor
 Server_IOB::Server_IOB(QWidget *parent)
 	: QMainWindow(parent),
-	mWebSocketServer(new QWebSocketServer(QStringLiteral("InOutBoard"), QWebSocketServer::NonSecureMode, this)),
-	mClients()
+	mWebSocketServer(new QWebSocketServer(QStringLiteral("InOutBoard"), QWebSocketServer::NonSecureMode, this))
 {
-
+	mClients.clear();
 	
 	// load the XML document with the known clients
 	mClientList = loadXMLDocument(mFileName);
 
 	// parse the client list
-	setClientList(mClientList);
-
+	setClientList(mClientList, mClients);
+	
 	// start server
 	this->startServer();
 		
@@ -29,7 +28,7 @@ Server_IOB::Server_IOB(QWidget *parent)
 Server_IOB::~Server_IOB()
 {
 	mWebSocketServer->close();
-	qDeleteAll(mClients.begin(), mClients.end());
+	mClients.clear();
 } // END destructor
 
 // load the XML document
@@ -88,7 +87,7 @@ QDomDocument Server_IOB::loadXMLDocument(QString fileName)
 } // END loadXMLDocument
 
 // create a hash map from xml document
-void Server_IOB::setClientList(QDomDocument mClientList)
+void Server_IOB::setClientList(QDomDocument mClientList, QList<Client*>& list)
 {
 	QDomElement root = mClientList.firstChildElement("clientList");
 	// if there are no clients in the list return
@@ -103,18 +102,22 @@ void Server_IOB::setClientList(QDomDocument mClientList)
 		QString id = client.toElement().attribute("id");
 		if (isValidQUuid(id))
 		{
-			QString name     = client.firstChildElement("name").text();
-			QString status   = client.firstChildElement("status").text();
+			// create new client
+			QString name = client.firstChildElement("name").text();
 			QString location = client.firstChildElement("location").text();
-			QString phone    = client.firstChildElement("phone").text();
-			QString notes    = client.firstChildElement("notes").text();
-			QDateTime lastUpdated = QDateTime::fromString(client.firstChildElement("updateTime").text(),"yyyy:MM:dd HH : mm:ss");
-			qDebug() << name;
-			qDebug() << status;
-			qDebug() << location;
-			qDebug() << phone;
-			qDebug() << notes;
-			qDebug() << lastUpdated.toString();
+			QString phone = client.firstChildElement("phone").text();
+			QString notes = client.firstChildElement("notes").text();
+			QDateTime lastUpdated = QDateTime::fromString(client.firstChildElement("updateTime").text(), "yyyy:MM:dd HH : mm:ss");
+
+			QUuid uuid = id;
+			Client* cl = new Client(uuid, name);
+			cl->setLocation(location);
+			cl->setPhone(phone);
+			cl->setNotes(notes);
+			cl->setLastUpdateDateTime(lastUpdated);
+			
+			cl->print();
+			list.push_back(cl);
 		}
 		client = client.nextSibling();
 	}
@@ -161,6 +164,7 @@ void Server_IOB::processTextMessage(QString telegram)
 		if (uuid != QUuid::QUuid().toString() && isValidQUuid(uuid))
 		{
 			qDebug() << "ID is valid!";
+			/*
 			if (!this->isClient(uuid))
 			{
 				// client is known
@@ -173,6 +177,7 @@ void Server_IOB::processTextMessage(QString telegram)
 			if (pClient) {
 				pClient->sendTextMessage(ack);
 			}
+			*/
 		}
 		else
 		{
@@ -200,15 +205,17 @@ void Server_IOB::socketDisconnected()
 }
 
 // check if new client is known
+/*
 bool Server_IOB::isClient(QString uuid)
 {
-	QList<Client*>::ConstIterator cIter = mClients.constBegin();
+	QList<Client>::ConstIterator cIter = mClients.constBegin();
 	for (cIter; cIter != mClients.constEnd(); ++cIter)
 	{
 		
 	}
 	return true;
 }
+*/
 
 // check a QUuid for validity (check length & symbols)
 bool Server_IOB::isValidQUuid(QString uuid)

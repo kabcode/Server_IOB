@@ -57,14 +57,14 @@ private:
 	
 	// network variables
 	QWebSocketServer    *mWebSocketServer;
-	QList<Client* >		 mClients;
+	QList<Client*>		 mClients;
 	QList<QWebSocket *>  mPendingSockets;
 
 	// private functions
 	QDomDocument loadXMLDocument(QString);
-	void         setClientList(QDomDocument);
+	void         setClientList(QDomDocument, QList<Client*>&);
 	void		 startServer();
-	bool		 isClient(QString);
+	//bool		 isClient(QString);
 	bool		 isValidQUuid(QString);
 
 	// UI variables
