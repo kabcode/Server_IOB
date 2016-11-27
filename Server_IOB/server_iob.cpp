@@ -166,8 +166,7 @@ void Server_IOB::processTextMessage(QString telegram)
 		if (uuid != QUuid::QUuid().toString() && isValidQUuid(uuid))
 		{
 			qDebug() << "ID is valid!";
-			/*
-			if (!this->isClient(uuid))
+			if (!this->isKnownClient(uuid))
 			{
 				// client is known
 			}
@@ -179,7 +178,7 @@ void Server_IOB::processTextMessage(QString telegram)
 			if (pClient) {
 				pClient->sendTextMessage(ack);
 			}
-			*/
+			
 		}
 		else
 		{
@@ -206,18 +205,22 @@ void Server_IOB::socketDisconnected()
 	}
 }
 
-// check if new client is known
-/*
-bool Server_IOB::isClient(QString uuid)
+// check if new registered client is known
+bool Server_IOB::isKnownClient(QString uuid)
 {
-	QList<Client>::ConstIterator cIter = mClients.constBegin();
+	QList<Client*>::ConstIterator cIter = mClients.constBegin();
+	bool known = false;
 	for (cIter; cIter != mClients.constEnd(); ++cIter)
 	{
-		
+		// if the id is known, set bool to true and break
+		if ((*cIter)->getUuid().toString() == uuid)
+		{
+			known = true;
+			break;
+		}
 	}
-	return true;
+	return known;
 }
-*/
 
 // check a QUuid for validity (check length & symbols)
 bool Server_IOB::isValidQUuid(QString uuid)

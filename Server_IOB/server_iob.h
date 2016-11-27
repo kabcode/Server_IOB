@@ -65,7 +65,7 @@ private:
 	void         writeClientToXml();
 	void         setClientList(QDomDocument, QList<Client*>&);
 	void		 startServer();
-	//bool		 isClient(QString);
+	bool		 isKnownClient(QString);
 	bool		 isValidQUuid(QString);
 
 	// UI variables
