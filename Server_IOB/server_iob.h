@@ -62,6 +62,7 @@ private:
 
 	// private functions
 	QDomDocument loadXMLDocument(QString);
+	void         writeClientToXml();
 	void         setClientList(QDomDocument, QList<Client*>&);
 	void		 startServer();
 	//bool		 isClient(QString);

@@ -28,6 +28,7 @@ Server_IOB::Server_IOB(QWidget *parent)
 Server_IOB::~Server_IOB()
 {
 	mWebSocketServer->close();
+	writeClientToXml();
 	mClients.clear();
 } // END destructor
 
@@ -86,7 +87,7 @@ QDomDocument Server_IOB::loadXMLDocument(QString fileName)
 	return clientList;
 } // END loadXMLDocument
 
-// create a hash map from xml document
+// create a QList from xml document
 void Server_IOB::setClientList(QDomDocument mClientList, QList<Client*>& list)
 {
 	QDomElement root = mClientList.firstChildElement("clientList");
@@ -111,6 +112,7 @@ void Server_IOB::setClientList(QDomDocument mClientList, QList<Client*>& list)
 
 			QUuid uuid = id;
 			Client* cl = new Client(uuid, name);
+			cl->setStatus(Client::STATUS::ABSENT);
 			cl->setLocation(location);
 			cl->setPhone(phone);
 			cl->setNotes(notes);
@@ -233,4 +235,42 @@ bool Server_IOB::isValidQUuid(QString uuid)
 	if (t.at(4).length() != 12) { valid = false; }
 
 	return valid;
+}
+
+// write the currently known clients to xml file
+void Server_IOB::writeClientToXml()
+{
+	// open xml file
+	QFile file(mFileName);
+	if (!file.open(QFile::WriteOnly))
+	{
+		// error message
+		QMessageBox messageBox;
+		messageBox.critical(0, "Error", "Unable to write XML file!!");
+		messageBox.setFixedSize(500, 200);
+		return;
+	}
+
+	QXmlStreamWriter writer(&file);
+	writer.setAutoFormatting(true);
+	writer.writeStartElement("clientList");
+
+	// write all the clients to xml file
+	QList<Client*>::ConstIterator cIter = mClients.constBegin();
+	for (cIter; cIter != mClients.constEnd(); ++cIter)
+	{
+		writer.writeStartElement("client");
+		writer.writeAttribute("id", (*cIter)->getUuid().toString());
+		writer.writeTextElement("name", (*cIter)->getName());
+		writer.writeTextElement("status", QString::number((*cIter)->getStatus()));
+		writer.writeTextElement("location", (*cIter)->getLocation());
+		writer.writeTextElement("phone", (*cIter)->getPhone());
+		writer.writeTextElement("notes", (*cIter)->getNotes());
+		writer.writeTextElement("updateTime", (*cIter)->getLastUpdateDateTime().toString());
+		writer.writeEndElement();
+	}
+
+	writer.writeEndElement();
+	file.close();
+	qDebug() << "Wrote XML file:" << mFileName;
 }

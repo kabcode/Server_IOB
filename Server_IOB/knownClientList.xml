@@ -1,17 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<clientList>
-	<client id="{7b92d4f7-3dab-4317-bf09-7548d5163b97}">
-		<name>Gordian</name>
-		<status>0</status>
-		<location>Rom</location>
-		<phone></phone>
-		<notes></notes>
-	</client>
-	<client id="{7b92d4f7-3dab-4317-bf09-7548d5163333}">
-		<name>Tom</name>
-		<status>2</status>
-		<location>Italia</location>
-		<phone></phone>
-		<notes></notes>
-	</client>
-</clientList>
+<clientList/>

@@ -39,7 +39,8 @@ Client::~Client()
 	 qDebug() << "Status: " << this->getStatus();
 	 qDebug() << "Location: " << this->getLocation();
 	 qDebug() << "Phone: " << this->getPhone();
-	 qDebug() << "Notes. " << this->getNotes();
+	 qDebug() << "Notes: " << this->getNotes();
+	 qDebug() << "Last updated: " << this->getLastUpdateDateTime().toString();
 	 qDebug() << "=================================================";
  }
 
