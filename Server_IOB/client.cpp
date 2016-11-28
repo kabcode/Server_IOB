@@ -7,6 +7,7 @@ Client::Client(QUuid uuid, QString name)
 	uuid(uuid)
 {
 	status = STATUS::ABSENT;
+	websocket = Q_NULLPTR;
 }
 
 Client::~Client()
@@ -21,7 +22,18 @@ Client::~Client()
  void Client::setStatus(int status)		  { this->status = status; }
  void Client::setLastUpdateDateTime()		  {	this->lastUpdateDateTime = QDateTime::currentDateTime();}
  void Client::setLastUpdateDateTime(QDateTime dateTime) { this->lastUpdateDateTime = dateTime; }
- void Client::setWebsocket(QWebSocket socket) { this->websocket = &socket;  }
+ void Client::setWebsocket(QWebSocket* socket)
+ {
+	 if (!websocket)
+	 {
+		 this->websocket = socket;
+	 }
+	 else
+	 {
+		 websocket->disconnect();
+		 this->websocket = socket;
+	 }
+ }
 
  QUuid	 Client::getUuid() { return uuid; }
  QString Client::getName() { return name; };
@@ -31,6 +43,7 @@ Client::~Client()
  QString Client::getNotes() { return notes; };
  QDateTime Client::getLastUpdateDateTime() { return lastUpdateDateTime; };
 
+ // reveal the clients infomation
  void Client::print()
  {
 	 qDebug() <<"=================================================" ;
@@ -41,6 +54,20 @@ Client::~Client()
 	 qDebug() << "Phone: " << this->getPhone();
 	 qDebug() << "Notes: " << this->getNotes();
 	 qDebug() << "Last updated: " << this->getLastUpdateDateTime().toString();
+	 if (!websocket)
+	 {
+		 qDebug() << "Websocket: not connected";
+	 }
+	 else
+	 {
+		 qDebug() << "Websocket: " << this->websocket;
+	 }
 	 qDebug() << "=================================================";
+ }
+
+ // close websocket
+ void Client::closeWebSocket()
+ {
+	 websocket->close();
  }
 

@@ -32,7 +32,8 @@ public:
 	void setNotes(QString);
 	void setLastUpdateDateTime();
 	void setLastUpdateDateTime(QDateTime);
-	void setWebsocket(QWebSocket);
+	void setWebsocket(QWebSocket*);
+	void closeWebSocket();
 
 	QUuid	Client::getUuid();
 	QString Client::getName();

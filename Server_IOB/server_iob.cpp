@@ -125,16 +125,25 @@ void Server_IOB::setClientList(QDomDocument mClientList, QList<Client*>& list)
 	}
 }// END setClientList
 
+// set up server and listening ip and port
 void Server_IOB::startServer()
 {
 	QHostAddress addr = QHostAddress::LocalHost;
 	qint16 port = 9000;
-	mWebSocketServer->listen(addr, port);
-	qDebug() << "InOutBoard Server listening on port" << port;
-	connect(mWebSocketServer, &QWebSocketServer::newConnection, this, &Server_IOB::onNewConnection);
-	connect(mWebSocketServer, &QWebSocketServer::closed, this, &Server_IOB::closed);
+	if(mWebSocketServer->listen(addr, port))
+	{
+		qDebug() << "InOutBoard Server listening on port" << port;
+		connect(mWebSocketServer, &QWebSocketServer::newConnection, this, &Server_IOB::onNewConnection);
+		connect(mWebSocketServer, &QWebSocketServer::closed, this, &Server_IOB::closed);
+	}
+	else
+	{
+		qDebug() << "Problem with starting server.";
+	}
+	
 }
 
+// todo
 void Server_IOB::onNewConnection()
 {
 	QWebSocket *pSocket = mWebSocketServer->nextPendingConnection();
@@ -145,6 +154,7 @@ void Server_IOB::onNewConnection()
 	mPendingSockets << pSocket;
 }
 
+// receiving messages, registration process is handled here
 void Server_IOB::processTextMessage(QString telegram)
 {
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
@@ -166,35 +176,52 @@ void Server_IOB::processTextMessage(QString telegram)
 		if (uuid != QUuid::QUuid().toString() && isValidQUuid(uuid))
 		{
 			qDebug() << "ID is valid!";
-			if (!this->isKnownClient(uuid))
+			if (this->isKnownClient(uuid))
 			{
 				// client is known
+
 			}
 			else
 			{
-				// unknown clients
+				// unknown clients, add client to QList
+				QUuid id = controls.at(1);
+				Client* cl = new Client(id,controls.at(2));
+				cl->setStatus(controls.at(3).toInt());
+				cl->setLocation(controls.at(4));
+				cl->setPhone(controls.at(5));
+				cl->setNotes(controls.at(6));
+				cl->setLastUpdateDateTime();
+				cl->setWebsocket(pClient);
+
+				mClients.push_back(cl);
 			}
+			// give a answer that the registration succeded
 			QString ack("Registration is done.");
 			if (pClient) {
 				pClient->sendTextMessage(ack);
 			}
 			
+			// boadcast the update to all clients
 		}
 		else
 		{
 			qDebug() << "ID is not valid!";
 			pClient->sendTextMessage(QString::number(MESSAGEID::REFUSAL).append("#ID is not correct."));
-			// give a answer that the registration succeded
+			// give a answer that the registration failedl
+			QString ack("Your ID is not valid.");
+			if (pClient) {
+				pClient->sendTextMessage(ack);
+				pClient->close();
+			}
 		}
 	}
 		break;
 	default:
 		qDebug() << "Unknown request!";
 	}
-	
-	
 }
 
+// todo
 void Server_IOB::socketDisconnected()
 {
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
@@ -216,6 +243,7 @@ bool Server_IOB::isKnownClient(QString uuid)
 		if ((*cIter)->getUuid().toString() == uuid)
 		{
 			known = true;
+			qDebug() << "ID is known: " << (*cIter)->getUuid();
 			break;
 		}
 	}
@@ -240,7 +268,7 @@ bool Server_IOB::isValidQUuid(QString uuid)
 	return valid;
 }
 
-// write the currently known clients to xml file
+// write the currently known clients to xml file. It closes the websocket and delete the client
 void Server_IOB::writeClientToXml()
 {
 	// open xml file
@@ -271,6 +299,10 @@ void Server_IOB::writeClientToXml()
 		writer.writeTextElement("notes", (*cIter)->getNotes());
 		writer.writeTextElement("updateTime", (*cIter)->getLastUpdateDateTime().toString());
 		writer.writeEndElement();
+
+		// close websocket and relase the client
+		//(*cIter)->closeWebSocket();
+		delete (*cIter);
 	}
 
 	writer.writeEndElement();
