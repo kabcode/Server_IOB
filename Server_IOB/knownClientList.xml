@@ -1,2 +1,11 @@
 
-<clientList/>
+<clientList>
+    <client id="{7b92d4f7-3dab-4317-bf09-7548d5163b97}">
+        <name>Gordian</name>
+        <status>2</status>
+        <location></location>
+        <phone>hello</phone>
+        <notes></notes>
+        <updateTime>Di Nov 29 23:15:49 2016</updateTime>
+    </client>
+</clientList>

@@ -54,14 +54,31 @@ Client::~Client()
 	 qDebug() << "Phone: " << this->getPhone();
 	 qDebug() << "Notes: " << this->getNotes();
 	 qDebug() << "Last updated: " << this->getLastUpdateDateTime().toString();
-	 if (!websocket)
+
+	 typedef QAbstractSocket::SocketState StateType;
+	 if (websocket == Q_NULLPTR)
 	 {
-		 qDebug() << "Websocket: not connected";
+		 qDebug() << "Websocket: not availiable";
 	 }
 	 else
 	 {
 		 qDebug() << "Websocket: " << this->websocket;
+		 StateType state = websocket->state();
+		 switch (state)
+		 {
+		 case StateType::ConnectedState:
+			 qDebug() << "Websocket: is connected."; break;
+		 case StateType::BoundState:
+			 qDebug() << "Websocket: is bound."; break;
+		 case StateType::UnconnectedState:
+			 qDebug() << "Websocket: is not connected."; break;
+		 case StateType::ListeningState:
+			 qDebug() << "Websocket: is listening."; break;
+		 default:
+			 qDebug() << "Websocket: something happened. I dont know for sure.";;
+		 }
 	 }
+	 
 	 qDebug() << "=================================================";
  }
 
@@ -69,5 +86,6 @@ Client::~Client()
  void Client::closeWebSocket()
  {
 	 websocket->close();
+	 this->setWebsocket(Q_NULLPTR);
  }
 

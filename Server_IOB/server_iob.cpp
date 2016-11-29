@@ -160,12 +160,14 @@ void Server_IOB::processTextMessage(QString telegram)
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
 	QStringList controls = telegram.split("#");
 	QStringList::Iterator iter = controls.begin();
+	/*
 	for (iter; iter != controls.end(); ++iter)
 	{
 		qDebug() << *iter;
 	}
-	int control = controls.at(0).toInt();
+	*/
 
+	int control = controls.at(0).toInt();
 	switch (control)
 	{
 	case MESSAGEID::REGISTRATION:
@@ -179,7 +181,24 @@ void Server_IOB::processTextMessage(QString telegram)
 			if (this->isKnownClient(uuid))
 			{
 				// client is known
-
+				Client* cl = this->getClientFromQList(uuid);
+				if (cl != Q_NULLPTR)
+				{
+					qDebug() << "Client: ";
+					cl->setName(controls.at(2));
+					cl->setStatus(controls.at(3).toInt());
+					cl->setLocation(controls.at(4));
+					cl->setPhone(controls.at(5));
+					cl->setNotes(controls.at(6));
+					cl->setLastUpdateDateTime();
+					cl->setWebsocket(pClient);
+					qDebug() << "Client is updated: " << uuid;
+					cl->print();
+				}
+				else
+				{
+					qDebug() << "Nullpointer returned.";
+				}
 			}
 			else
 			{
@@ -194,6 +213,8 @@ void Server_IOB::processTextMessage(QString telegram)
 				cl->setWebsocket(pClient);
 
 				mClients.push_back(cl);
+				qDebug() << "Client is added to QList.";
+				cl->print();
 			}
 			// give a answer that the registration succeded
 			QString ack("Registration is done.");
@@ -216,6 +237,13 @@ void Server_IOB::processTextMessage(QString telegram)
 		}
 	}
 		break;
+	case MESSAGEID::CLOSING:
+	{
+		Client* cl = getClientFromQList(controls.at(1));
+		cl->closeWebSocket();
+		cl->setLastUpdateDateTime();
+		break;
+	}
 	default:
 		qDebug() << "Unknown request!";
 	}
@@ -308,4 +336,21 @@ void Server_IOB::writeClientToXml()
 	writer.writeEndElement();
 	file.close();
 	qDebug() << "Wrote XML file:" << mFileName;
+}
+
+// get the pointer to the client from the client list
+Client* Server_IOB::getClientFromQList(QString uuid)
+{
+	QList<Client*>::ConstIterator cIter = mClients.constBegin();
+	
+	for (cIter; cIter != mClients.constEnd(); ++cIter)
+	{
+		// if the id is known, set bool to true and break
+		if ((*cIter)->getUuid().toString() == uuid)
+		{
+			return (*cIter);
+		}
+	}
+	Client* noCl = Q_NULLPTR;
+	return noCl;
 }

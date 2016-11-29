@@ -39,6 +39,7 @@ public:
 		UPDATE,
 		MESSAGE,
 		REFUSAL,
+		CLOSING,
 		TEST
 	};
 
@@ -67,6 +68,7 @@ private:
 	void		 startServer();
 	bool		 isKnownClient(QString);
 	bool		 isValidQUuid(QString);
+	Client*		 getClientFromQList(QString);
 
 	// UI variables
 	Ui::Server_IOBClass ui;
