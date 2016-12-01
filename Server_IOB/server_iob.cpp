@@ -160,13 +160,7 @@ void Server_IOB::processTextMessage(QString telegram)
 	QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
 	QStringList controls = telegram.split("#");
 	QStringList::Iterator iter = controls.begin();
-	/*
-	for (iter; iter != controls.end(); ++iter)
-	{
-		qDebug() << *iter;
-	}
-	*/
-
+	
 	int control = controls.at(0).toInt();
 	switch (control)
 	{
@@ -238,8 +232,24 @@ void Server_IOB::processTextMessage(QString telegram)
 				pClient->close();
 			}
 		}
-	}
 		break;
+	}
+	// client is active, update the variables and broadcast
+	case MESSAGEID::UPDATE:
+	{
+		Client* cl = getClientFromQList(controls.at(1));
+		if (QDateTime::currentDateTime() > cl->getLastUpdateDateTime())
+		{
+			cl->setName(controls.at(2));
+			cl->setStatus(controls.at(3).toInt());
+			cl->setLocation(controls.at(4));
+			cl->setPhone(controls.at(5));
+			cl->setNotes(controls.at(6));
+			cl->setLastUpdateDateTime();
+			broadcastClientUpdate(cl);
+			break;
+		}
+	}
 	case MESSAGEID::CLOSING:
 	{
 		Client* cl = getClientFromQList(controls.at(1));

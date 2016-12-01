@@ -2,10 +2,10 @@
 <clientList>
     <client id="{7b92d4f7-3dab-4317-bf09-7548d5163b97}">
         <name>Gordian</name>
-        <status>0</status>
+        <status>1</status>
         <location></location>
         <phone>hello</phone>
         <notes></notes>
-        <updateTime>Do Dez 1 10:38:06 2016</updateTime>
+        <updateTime>Do Dez 1 21:36:51 2016</updateTime>
     </client>
 </clientList>
