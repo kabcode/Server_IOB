@@ -35,13 +35,14 @@ public:
 	void setWebsocket(QWebSocket*);
 	void closeWebSocket();
 
-	QUuid	Client::getUuid();
-	QString Client::getName();
-	int		Client::getStatus();
-	QString	Client::getLocation();
-	QString	Client::getPhone();
-	QString	Client::getNotes();
-	QDateTime Client::getLastUpdateDateTime();
+	QUuid		getUuid();
+	QString		getName();
+	int			getStatus();
+	QString		getLocation();
+	QString		getPhone();
+	QString		getNotes();
+	QDateTime   getLastUpdateDateTime();
+	QWebSocket* getWebsocket();
 
 	void Client::print();
 

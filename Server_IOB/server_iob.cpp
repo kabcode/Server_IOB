@@ -194,6 +194,8 @@ void Server_IOB::processTextMessage(QString telegram)
 					cl->setWebsocket(pClient);
 					qDebug() << "Client is updated: " << uuid;
 					cl->print();
+
+					broadcastClientUpdate(cl);
 				}
 				else
 				{
@@ -215,6 +217,7 @@ void Server_IOB::processTextMessage(QString telegram)
 				mClients.push_back(cl);
 				qDebug() << "Client is added to QList.";
 				cl->print();
+				broadcastClientUpdate(cl);
 			}
 			// give a answer that the registration succeded
 			QString ack("Registration is done.");
@@ -242,6 +245,7 @@ void Server_IOB::processTextMessage(QString telegram)
 		Client* cl = getClientFromQList(controls.at(1));
 		cl->closeWebSocket();
 		cl->setLastUpdateDateTime();
+		cl->print();
 		break;
 	}
 	default:
@@ -353,4 +357,35 @@ Client* Server_IOB::getClientFromQList(QString uuid)
 	}
 	Client* noCl = Q_NULLPTR;
 	return noCl;
+}
+
+// broadcast information updates
+void Server_IOB::broadcastClientUpdate(Client* cl)
+{
+	// create update telegram
+	QString bcUpdate(QString::number(MESSAGEID::UPDATE));
+	bcUpdate.append("#").append(cl->getUuid().toString());
+	bcUpdate.append("#").append(cl->getName());
+	bcUpdate.append("#").append(QString::number(cl->getStatus()));
+	bcUpdate.append("#").append(cl->getLocation());
+	bcUpdate.append("#").append(cl->getPhone());
+	bcUpdate.append("#").append(cl->getNotes());
+	bcUpdate.append("#").append(QDateTime::currentDateTime().toString());
+	qDebug() << bcUpdate;
+
+	// send telegram to all clients
+	QList<Client*>::ConstIterator cIter = mClients.constBegin();
+	while (cIter != mClients.constEnd())
+	{
+		if (!(*cIter)->getWebsocket()->sendTextMessage(bcUpdate))
+		{
+			// todo update failed for certain client
+		}
+		else
+		{
+			qDebug() << "Sent to: " << (*cIter)->getUuid();
+		}
+
+		++cIter;
+	}
 }

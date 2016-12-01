@@ -69,6 +69,7 @@ private:
 	bool		 isKnownClient(QString);
 	bool		 isValidQUuid(QString);
 	Client*		 getClientFromQList(QString);
+	void		 broadcastClientUpdate(Client*);
 
 	// UI variables
 	Ui::Server_IOBClass ui;

@@ -41,7 +41,8 @@ Client::~Client()
  QString Client::getLocation() { return location; };
  QString Client::getPhone() { return phone; };
  QString Client::getNotes() { return notes; };
- QDateTime Client::getLastUpdateDateTime() { return lastUpdateDateTime; };
+ QDateTime Client::getLastUpdateDateTime() { return lastUpdateDateTime; }
+ QWebSocket* Client::getWebsocket() { return websocket; };
 
  // reveal the clients infomation
  void Client::print()
