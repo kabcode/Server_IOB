@@ -1,0 +1,29 @@
+<UI version="4.0" >
+ <class>Server_IOBClass</class>
+ <widget class="QMainWindow" name="Server_IOBClass" >
+  <property name="objectName" >
+   <string notr="true">Server_IOBClass</string>
+  </property>
+  <property name="geometry" >
+   <rect>
+	<x>0</x>
+	<y>0</y>
+	<width>600</width>
+	<height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Server_IOB</string>
+  </property>
+  <widget class="QMenuBar" name="menuBar" />
+  <widget class="QToolBar" name="mainToolBar" />
+  <widget class="QWidget" name="centralWidget" />
+  <widget class="QStatusBar" name="statusBar" />
+ </widget>
+ <layoutDefault spacing="6" margin="11" />
+ <pixmapfunction></pixmapfunction>
+ <resources>
+   <include location="server_iob.qrc"/>
+ </resources>
+ <connections/>
+</UI>
