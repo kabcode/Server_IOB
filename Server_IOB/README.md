@@ -19,3 +19,6 @@ to the server. This may help to reduce the numbers of unanswered calls.</p>
 <p>Put the list items together with a hastag (#) as 'QString'.<br>
 <strong>Example: QString("{0000-00...0}#userName#userStatus#...#note");</strong>
 </p>
+
+
+<p>Added some notes</p>
